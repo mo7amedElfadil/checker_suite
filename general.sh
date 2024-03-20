@@ -14,26 +14,68 @@ case $suite in
     1)
         echo "You selected the C Suite."
         cd ~/checker/checker_suite/c_suite
-        read -p "Enter task directory to run (or 'all' to run all tasks): " task
-        if [ $task = "all" ]; then
+        echo "Available projects:"
+        ls -d */
+        read -p "Enter project directory to run (or 'all' to run all projects): " project
+        if [ $project = "all" ]; then
             for dir in $(ls -d */); do
                 cd $dir/checker
+                echo "Running tasks in project $dir:"
                 for file in $(ls *.sh); do
+                    echo "Running task $file"
                     bash $file
                 done
                 cd ../..
             done
         else
-            cd $task/checker
-            for file in $(ls *.sh); do
-                bash $file
-            done
+            cd $project/checker
+            echo "Available tasks in project $project:"
+            ls *.sh
+            read -p "Enter task to run (or 'all' to run all tasks): " task
+            if [ $task = "all" ]; then
+                for file in $(ls *.sh); do
+                    echo "Running task $file"
+                    bash $file
+                done
+            else
+                echo "Running task $task"
+                bash $task
+            fi
             cd ../..
         fi
         ;;
     2)
         echo "You selected the Python Suite."
-        # Similar changes would go here for the Python Suite
+        cd ~/checker/checker_suite/py_suite
+        echo "Available projects:"
+        ls -d */
+        read -p "Enter project directory to run (or 'all' to run all projects): " project
+        if [ $project = "all" ]; then
+            for dir in $(ls -d */); do
+                cd $dir/checker
+                echo "Running tasks in project $dir:"
+                for file in $(ls *.sh); do
+                    echo "Running task $file"
+                    bash $file
+                done
+                cd ../..
+            done
+        else
+            cd $project/checker
+            echo "Available tasks in project $project:"
+            ls *.sh
+            read -p "Enter task to run (or 'all' to run all tasks): " task
+            if [ $task = "all" ]; then
+                for file in $(ls *.sh); do
+                    echo "Running task $file"
+                    bash $file
+                done
+            else
+                echo "Running task $task"
+                bash $task
+            fi
+            cd ../..
+        fi
         ;;
     3)
         echo "Exiting."
