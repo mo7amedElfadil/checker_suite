@@ -1,7 +1,6 @@
 #!/bin/bash
 # This script checks if the output of the main file is as expected
 func_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"/checker_functions.sh
-# func_dir="$(dirname "$0")"/checker_functions.sh
 if [ -f "$func_dir" ]; then
 	source "$func_dir"
 else

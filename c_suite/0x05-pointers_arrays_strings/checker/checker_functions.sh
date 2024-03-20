@@ -1,13 +1,13 @@
 #!/bin/bash
-setup_colors() {
+function setup_colors() {
 	RED='\e[0;31m'
-	BRN='\e[1;33m'   # Red color
+	BRN='\e[1;33m'  
 	GRN='\e[0;32m'
 	BLU='\e[0;34m'
 	WHT='\e[0m'
 }
 
-setup_c() {
+function setup_c() {
 	task_file="$1"
 	base_dir="$(dirname "$(dirname "$0")")"
 	source_file="$base_dir/$task_file"
@@ -33,7 +33,7 @@ setup_c() {
 }
 
 # test code style
-test_style() {
+function test_style() {
 	for i in "$@"; do
 		extension=$(echo "$i" | rev | cut -d'.' -f1 | rev)
 		if [[ $extension == "py" ]]; then
@@ -50,20 +50,17 @@ test_style() {
 }
 
 # Print the error file in red
-print_err() {
-	# ANSI color codes
-	RED='\e[1;33m'   # Red color
-	WHT='\033[0m'        # White color (Reset)
+function print_err() {
+	RED='\e[1;33m'   
+	WHT='\033[0m'        
 
 	local filename="$1"
 
-	# Check if the file exists
 	if [ ! -f "$filename" ]; then
 		echo "File not found: $filename"
 		return 1
 	fi
 
-	# Print the content of the file in red
 	sed "s/.*/$(printf "${RED}&${WHT}")/" "$filename"
 }
 
@@ -76,7 +73,7 @@ function clean_up() {
 	fi
 }
 
-execute() {
+function execute() {
 	if ! gcc -Wall -pedantic -Werror -Wextra -std=gnu89 "$main_file" "$source_file" -o "$executable_file" 2> "$error_file"; then
 		echo -e "${RED}Compilation failed.${WHT}"
 		if [ -s "$error_file" ]; then
@@ -105,4 +102,5 @@ execute() {
 		echo -e "${BRN}Your output:\n${WHT}"
 		echo "$output"
 	fi
+	return 0
 }
