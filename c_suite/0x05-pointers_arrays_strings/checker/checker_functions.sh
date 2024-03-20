@@ -19,9 +19,13 @@ setup_c() {
 		fi
 	fi
 	pr=$(basename "$source_file" | cut -d'-' -f1)
+
 	main_file="$base_dir/main_files/$pr-main.c"
 	if [ ! -f "$main_file" ]; then
-		main_file=""
+		main_file="../main_files/$pr-main.c"
+		if [ ! -f "$main_file" ]; then
+			main_file=""
+		fi
 	fi
 	executable_file="$pr-executable"
 	expected_output_file="$(dirname "$0")/output/$pr-expected_output.txt"
