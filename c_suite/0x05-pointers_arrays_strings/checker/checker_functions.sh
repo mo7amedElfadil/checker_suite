@@ -45,7 +45,15 @@ function test_style() {
 		elif [[ $extension == "c" ]]; then
 			tester=betty
 		fi
-		$tester "$i" 
+		if [ -z "$tester" ]; then
+			echo -e "${RED}No code style checker found for $extension files. Please Install it.${WHT}"
+			continue
+		fi
+		if $tester "$i" 2> /dev/null; then
+			echo -e "${GRN}Code style OK.${WHT}"
+		else
+			echo -e "${RED}Code style not OK.${WHT}"
+		fi
 	done
 }
 
