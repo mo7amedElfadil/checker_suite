@@ -7,7 +7,7 @@ task()
 	local dir="$1"
 
 	# if task option arg provided; then globe it
-	if [ -n $TASK ]; then
+	if [[ -n "$TASK" ]]; then
 		[[ $(echo $TASK | rev | cut -d'.' -f1 | rev) != 'sh' ]] && task="$TASK*.sh" || task="$TASK"
 	else
 		task="*.sh"
