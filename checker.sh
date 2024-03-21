@@ -8,7 +8,9 @@ task()
 
 	# if task option arg provided; then globe it
 	if [ -n $TASK ]; then
-		[ `echo $TASK | rev | cut -d'.' -f1 | rev` != 'sh' ] && task="$TASK*.sh" || task="$TASK"
+		[[ $(echo $TASK | rev | cut -d'.' -f1 | rev) != 'sh' ]] && task="$TASK*.sh" || task="$TASK"
+	else
+		task="*.sh"
 	fi
 
 	# if no project arg and there's a task flag; then exit
@@ -16,7 +18,7 @@ task()
 
 	while read file; do
 		[ -x "$file" ] && source "$file"
-	done <<< "$(find $dir -name "$task")"
+	done <<< "$(find "$dir/checker" -name "$task")"
 }
 
 project()
@@ -27,8 +29,8 @@ project()
 	# if porject option arg provided; then globe it
 	[ -n "$PROJECT" ] && proj="$PROJECT*" || proj="*"
 
-	# if no project arg; then exit
-	# [ -z "$PROJECT" ] && echo "Usage: no project" >&2 && exit 1
+	# if no project arg and there's a language; then exit
+	[[ -z "$PROJECT"  && "$LA" ]] && echo "No language for project" && exit
 
 	# No langauge and no all flag
 	[ -z "$all" ] && [ -z "$LA" ] && echo 'No language provided' && exit 1
@@ -37,8 +39,9 @@ project()
 		if [ -d "$dir" ]; then
 			task $dir
 		fi
-	done <<< $(find "$suite"/$proj -name "checker" -type d)
+	done <<< $(find "$suite"/$proj -name "0x*" -type d)
 }
+
 all()
 {
 	# Looping thro the suites
@@ -50,12 +53,13 @@ all()
 		fi
 	done
 }
+
 lang()
 {
 	case $1 in
 		"c") project "$DIR_PATH/c_suite";;
 		"py") project "$DIR_PATH/py_suite";;
-		*) echo "Invalid" ;;
+		*) echo "No lnaguage!" ;;
 	esac
 }
 
