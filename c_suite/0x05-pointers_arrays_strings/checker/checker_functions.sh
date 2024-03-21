@@ -10,7 +10,6 @@ function setup_colors() {
 function setup_c() {
 	task_file="$1"
 	base_dir="$(dirname "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)")"
-	echo "-----> $base_dir"
 	source_file="$base_dir/$task_file"
 	if [ ! -f "$source_file" ]; then
 		source_file="../$task_file"
