@@ -92,7 +92,7 @@ function execute() {
 		return 1
 	fi
 
-	output=$(./"$executable_file")
+	output=$(./"$executable_file" "${@:2}")
 	if [ $? -eq 139 ]; then
 		echo -e "${RED}Segmentation fault occurred.${WHT}"
 		return 1
