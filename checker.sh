@@ -7,13 +7,15 @@ task()
 	local dir="$1"
 
 	# if task option arg provided; then globe it
-	[ -n $TASK ] && task="$TASK*.sh" || task="[0-9]-*.sh"
+	if [ -n $TASK ]; then
+		[ `echo $TASK | rev | cut -d'.' -f1 | rev` != 'sh' ] && task="$TASK*.sh" || task="$TASK"
+	fi
 
-	# if no project arg; then exit
-	# [ -z $PROJECT ] && echo "Usage: no project" >&2 && exit 1
+	# if no project arg and there's a task flag; then exit
+	[[ -z $PROJECT && -n $TASK ]] && echo "Usage: no project" >&2 && exit 1
 
 	while read file; do
-		source "$file"
+		[ -x "$file" ] && source "$file"
 	done <<< "$(find $dir -name "$task")"
 }
 
@@ -28,6 +30,7 @@ project()
 	# if no project arg; then exit
 	# [ -z "$PROJECT" ] && echo "Usage: no project" >&2 && exit 1
 
+	# No langauge and no all flag
 	[ -z "$all" ] && [ -z "$LA" ] && echo 'No language provided' && exit 1
 
 	while read dir; do
@@ -70,10 +73,11 @@ while getopts ":at:p:l:" opt; do
 
 done
 
-# No option provided
 if [ "$OPTIND" -gt 1 ]; then
 	lang "$LA"
 else
+# No option provided
+
 	declare -A suites
 	declare -A projs
 	declare -A tsks
@@ -97,7 +101,7 @@ else
 	case $suite in
 		1)
 			LA="c"
-			echo -e "Select a project:"
+			echo -e "Select a project number:"
 
 			#select a project
 			for proj in "$DIR_PATH/${suites[1]}"/*; do
@@ -107,10 +111,15 @@ else
 					echo -e "$j- ${projs[$j]}" && ((j++))
 				fi
 			done
+			echo -e "$j- all"
 			read -r proj_opt
+
+			# all project in suite
+			[ "$proj_opt" == "$j" ] && PROJECT="*" && lang "$LA" && exit
+
 			PROJECT=${projs[$proj_opt]}
 
-			echo -e "Select a task:"
+			echo -e "Select a task number:"
 
 			#select a task
 			j=1
@@ -119,9 +128,14 @@ else
 				tsks[$j]="$ts"
 				echo -e "$j- ${tsks[$j]}" && ((j++))
 			done
+			echo -e "$j- all"
 
 			read -r tsk_opt
-			source "$DIR_PATH/${suites[1]}/$PROJECT/checker/${tsks[$tsk_opt]}"
+
+			# all tasks in a suite
+			[ "$tsk_opt" == "$j" ] && TASK="*" && lang "$LA" && exit
+			TASK="${tsks[$tsk_opt]}"
+			lang "$LA"
 
 			;;
 		2) project "$DIR_PATH/${suites[2]}";;
