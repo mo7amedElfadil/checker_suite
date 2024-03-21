@@ -9,7 +9,8 @@ function setup_colors() {
 
 function setup_c() {
 	task_file="$1"
-	base_dir="$(dirname "$(dirname "$0")")"
+	base_dir="$(dirname "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)")"
+	echo "-----> $base_dir"
 	source_file="$base_dir/$task_file"
 	if [ ! -f "$source_file" ]; then
 		source_file="../$task_file"
@@ -28,7 +29,7 @@ function setup_c() {
 		fi
 	fi
 	executable_file="$pr-executable"
-	expected_output_file="$(dirname "$0")/output/$pr-expected_output.txt"
+	expected_output_file="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/output/$pr-expected_output.txt"
 	error_file="$pr-error.txt"
 }
 
