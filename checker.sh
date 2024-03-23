@@ -6,12 +6,12 @@ DIR_PATH="$(find ~ -name "checker_suite" -type d)"
 # 1- help or manual
 # 2- if there's no project, there should prompt for it
 # 3- if there's no langauge, there should prompt for it
-# 4- if there's no task, there should prompt for it
+# 4- if there's no task, there should prompt for it 
 # 5- the order of the flags
 # 6- checker -t, should look in pwd, wt if I have task 0x01 for each language ?
 
 # =========BUGS==========:
-# 1- wrong optoin provided(don't trust the user)
+# 1- wrong optoin provided(don't trust the user) <DONE>
 
 function setup_colors() {
 	RED='\e[0;31m'
@@ -148,13 +148,15 @@ else
 				fi
 			done
 			echo -e "$j- all"
+
 			read -r proj_opt
+			# wrong option selection
+			[[ $proj_opt > $j || "$proj_opt" < 1 ]] && echo -e "${RED}Wrong option${WHT} <$proj_opt>" && exit 1
 
 			# all project in suite
 			[ "$proj_opt" == "$j" ] && PROJECT="*" && lang "$LA" && exit
 
 			PROJECT=${projs[$proj_opt]}
-			# TODO: wrong option for PROJECT
 
 			echo -e "Select a task number:"
 
@@ -168,11 +170,12 @@ else
 			echo -e "$j- all"
 
 			read -r tsk_opt
+			# wrong option selection
+			[[ $tsk_opt > $j || "$tsk_opt" < 1 ]] && echo "${RED}Wrong option <$tsk_opt>${WHT}" && exit 1
 
 			# all tasks in a suite
 			[ "$tsk_opt" == "$j" ] && TASK="*" && lang "$LA" && exit
 
-			# TODO: wrong option for TASK
 			TASK="${tsks[$tsk_opt]}"
 			lang "$LA"
 
