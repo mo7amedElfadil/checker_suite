@@ -6,7 +6,7 @@ DIR_PATH="$(find ~ -name "checker_suite" -type d)"
 # 1- help or manual
 # 2- if there's no project, there should prompt for it
 # 3- if there's no langauge, there should prompt for it
-# 4- if there's no task, there should prompt for it 
+# 4- if there's no task, there should prompt for it
 # 5- the order of the flags
 # 6- checker -t, should look in pwd, wt if I have task 0x01 for each language ?
 
@@ -53,7 +53,7 @@ project()
 	local all="$2"
 
 	# if porject option arg provided; then globe it
-	[ -n "$PROJECT" ] && proj="$PROJECT*" || proj="*"
+	[ -n "$PROJECT" ] && proj="$PROJECT*" || proj="0x*"
 
 	# if no project arg and there's a language; then exit
 	[[ -n "$LA" && -z "$PROJECT" && -d $LA*/$proj ]] && echo "No project for the Language <$LA>" && exit
@@ -61,11 +61,11 @@ project()
 	# No langauge and no all flag
 	[ -z "$all" ] && [[ -z "$LA"  ]] && echo 'No language provided' && exit 1
 
-	while read dir; do
+	while read -r dir; do
 		if [ -d "$dir" ]; then
 			task $dir
 		fi
-	done <<< $(find "$suite"/$proj -name "0x*" -type d)
+	done <<< $(find "$suite" -name "$proj" -type d)
 }
 
 all()
@@ -106,8 +106,9 @@ done
 
 if [ "$OPTIND" -gt 1 ]; then
 	if [ -n $TASK ] && [ -z $PROJECT ] && [ -z $LA ];then
-		PROJECT=$(dirname "$(pwd)")
-		task `pwd`
+		PROJECT="$(basename "$(dirname $PWD)")"
+		LA="$(basename $PROJECT | cut -d'_' -f1)"
+		task $PWD
 	fi
 	lang "$LA"
 else
