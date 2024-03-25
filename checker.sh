@@ -115,6 +115,7 @@ while getopts ":at:p:l:h" opt; do
 done
 
 if [ "$OPTIND" -gt 1 ]; then
+	# non-interactive mode
 	if [[ -n "$TASK"  &&  -z "$PROJECT"  &&  -z "$LA" ]]; then
 		# handle executing task when no project path
 
@@ -128,7 +129,7 @@ if [ "$OPTIND" -gt 1 ]; then
 		lang "$LA"
 	fi
 else
-# No option provided
+# No option provided, interactive mode
 
 	# declare -A basically syntax for difining associative array in bash
 	declare -A suites
