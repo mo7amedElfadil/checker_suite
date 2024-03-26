@@ -9,28 +9,45 @@ ORNG='\e[38;5;208m'
 CYAN='\e[0;36m'
 WHT='\e[0m'
 
-# ===========TODO==========:
-# 1- help or manual
-# 2- if there's no project, there should prompt for it <DONE>
-# 3- if there's no langauge, there should prompt for it <DONE>
-# 4- if there's no task, there should prompt for it
-# 5- the order of the flags <DONE>
-# 6- checker -t, should look in pwd <DONE>
+help_()
+{
+cat <<- _EOF_
+		Usage: checker [-l language] [-p project] [-t task]
+		Options:
+		  -h help     : this help
+		  -l language : language to run the checker against
+		  -p project  : the project to run the checker for
+		  -t task     : task number
+		  -a all      : run all tasks for every language
+		Or:
+		  You can use the script w/out flags, then u'll be prompted to select for various options
+		Example:
+		  checker -l c -p 0x00 -t 1
+		  will run task '1' in project '0x00' of the language 'c'
+		  checker -l c -p 0x00 -t *
+		  will run all the tasks in project '0x00' of the language 'c'
+_EOF_
+exit
+}
 
-# =========BUGS==========:
-# 1- wrong optoin provided(don't trust the user) <DONE>
+
+err()
+{
+	local msg="$1"
+	echo -e "${RED}$msg${WHT}" && exit 1
+}
 
 
 task()
 {
 	local proj="$1"
 	local errno=1
+	local task="*.sh"
 
 	# if task option arg provided; then globe it
-	if [[ -n "$TASK" ]]; then
-		[[ $(echo $TASK | rev | cut -d'.' -f1 | rev) != 'sh' ]] && task="$TASK*.sh" || task="$TASK"
-	else
-		task="*.sh"
+	if [ -n "$TASK" ]; then
+		# check for file extension
+		[[ -n "$TASK" && ! "$TASK" =~ \.sh$ ]] && task="$TASK*.sh" || task="$TASK"
 	fi
 
 	#echo "la: $LA, project: $PROJECT, proj: $proj"
@@ -42,7 +59,7 @@ task()
 		[ -x "$file" ] && source "$file" && errno=0
 	done <<< "$(find "$proj/checker" -name "$task" 2> /dev/null)"
 
-	[ "$errno" -ne 0 ] && echo -e "${RED}No task found in $proj ${WHT}"
+	[ "$errno" -ne 0 ] && err "No task found in $proj"
 }
 
 project()
@@ -56,19 +73,23 @@ project()
 	[ -n "$PROJECT" ] && proj="$PROJECT*"
 
 	# if no project arg and there's a language; then exit
-	[[ -n "$LA" && -z "$PROJECT" ]] && echo "No project for the Language <$LA>" && exit
+	[[ -n "$LA" && -z "$PROJECT" ]] && err "No project for the Language <$LA>"
 
 	# No langauge and no all flag
-	[ -z "$all" ] && [[ -z "$LA"  ]] && echo 'No language provided' && exit 1
+	[ -z "$all" ] && [[ -z "$LA"  ]] && err 'No language provided'
+
+	#echo "PROJECT: $PROJECT, proj: $proj"
 
 	while read -r dir; do
-		if [ -d "$dir" ]; then
+		# perform pattern match w/ regex
+		# Don't qoute the right side, or regex matching pattern will not work
+		if [[ -d "$dir" && $(basename "$dir") =~ ^0x.* ]]; then
 			errno=0
 			task $dir
 		fi
 	done <<< $(find "$suite" -name "$proj" -type d 2> /dev/null)
 
-	[ "$errno" -ne 0 ] && echo -e "${RED}No project found${WHT}"
+	[ "$errno" -ne 0 ] && err "No project found in $suite"
 }
 
 all()
@@ -100,7 +121,7 @@ while getopts ":at:p:l:h" opt; do
 		p) PROJECT="$OPTARG";;
 		l) LA="$OPTARG";;
 		# TODO: help or manual
-		h) echo 'this is help'; exit;;
+		h) help_;;
 		\?) echo "Wrong option"; exit 1;;
 		:)
 			case "$OPTARG" in
@@ -170,10 +191,14 @@ else
 			read -r proj_opt
 
 			# wrong option selection
-			[[ $proj_opt > $j || "$proj_opt" < 0 ]] && echo -e "${RED}Wrong option${WHT} <$proj_opt>" && exit 1
+			[[ "$proj_opt" > $j || "$proj_opt" < 0 ]] && err "Wrong option <$proj_opt>"
 
-			# all project in suite
-			[ "$proj_opt" == "$j" ] && PROJECT="*" && lang "$LA" && exit
+			# all projects in suite
+			if [ "$proj_opt" -eq "$j" ]; then
+				PROJECT="0x*"
+				lang "$LA"
+				exit "$?"
+			fi
 
 			PROJECT=${projs[$proj_opt]}
 
@@ -181,7 +206,7 @@ else
 
 			#select a task
 			j=0
-			for tsk in "$DIR_PATH/${suites[1]}/$PROJECT/checker"/[0-9]-*.sh; do
+			for tsk in "$DIR_PATH/${suites[1]}/$PROJECT/checker/"[0-9]-*.sh; do
 				ts="$(basename $tsk)"
 				tsks[$j]="$ts"
 				echo -e "${CYAN}$j-${WHT} ${tsks[$j]}" && ((j++))
@@ -191,10 +216,7 @@ else
 			read -r tsk_opt
 
 			# wrong option selection
-			[[ $tsk_opt > $j || "$tsk_opt" < 0 ]] && echo "${RED}Wrong option <$tsk_opt>${WHT}" && exit 1
-
-			# all tasks in a suite
-			[ "$tsk_opt" == "$j" ] && TASK="*" && lang "$LA" && exit
+			[[ "$tsk_opt" > $j || "$tsk_opt" < 0 ]] && err "Wrong option <$tsk_opt>"
 
 			TASK="${tsks[$tsk_opt]}"
 			lang "$LA"
