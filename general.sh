@@ -10,10 +10,11 @@ echo "3. Exit"
 read -p "Enter your choice: " suite
 
 # Based on the selection, perform the action
+checker_dir=$(find "$HOME" -type d -name "checker_suite")
 case $suite in
     1)
         echo "You selected the C Suite."
-        cd ~/checker/checker_suite/c_suite
+        cd $checker_dir/c_suite
         echo "Available projects:"
         ls -d */
         read -p "Enter project directory to run (or 'all' to run all projects): " project
@@ -46,7 +47,7 @@ case $suite in
         ;;
     2)
         echo "You selected the Python Suite."
-        cd ~/checker/checker_suite/py_suite
+        cd $checker_dir/py_suite
         echo "Available projects:"
         ls -d */
         read -p "Enter project directory to run (or 'all' to run all projects): " project

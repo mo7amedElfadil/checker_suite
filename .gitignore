@@ -1,1 +1,8 @@
 
+.venv
+haystack_demo.py
+readme.py
+requirements.txt
+.env
+__pycache__
+c_suite/0x05-pointers_arrays_strings/readme.rst
