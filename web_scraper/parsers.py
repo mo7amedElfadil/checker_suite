@@ -12,14 +12,60 @@ def parse_data(info: Tag, dt: dict) -> None:
         This function will parse the data from the project page and
         update the project description in the data dictionary
     """
+    def parse_link(link: Tag, dt: dict) -> None:
+        """
+            Parse the link and update the project description.
+        """
+        if link.name == "a":
+            dt['project_description'] += f"[{link.text}]({link['href']})\n\n"
+
+    def parse_header(header: Tag, dt: dict) -> None:
+        """
+            Parse the header and update the project description.
+        """
+        if header.name == "h1":
+            dt['project_description'] += f"# {header.text}\n\n"
+        if header.name == "h2":
+            dt['project_description'] += f"## {header.text}\n\n"
+        if header.name == "h3":
+            dt['project_description'] += f"### {header.text}\n\n"
+        elif header.name == "h4":
+            dt['project_description'] += f"#### {header.text}\n\n"
+        elif header.name == "h5":
+            dt['project_description'] += f"##### {header.text}\n\n"
+        elif header.name == "h6":
+            dt['project_description'] += f"###### {header.text}\n\n"
+
+
     def process_item(item: Tag, dt: dict) -> None:
         """
             Process each item in the list and update the project description.
         """
+
         if item.name == "pre":
-            dt['project_description'] += f"```{item.text}```\n"
+            dt['project_description'] += f"```{item.text}```\n\n"
+        elif item.name in ["h1", "h2", "h3", "h4", "h5", "h6"]:
+            parse_header(item, dt)
+        elif item.name == "div":
+            print(item)
+            for sub_item in item.contents:
+                if isinstance(sub_item, Tag):
+                    process_item(sub_item, dt)
+                else:
+                    dt['project_description'] += f"{sub_item}\n\n"
+
+        elif item.name == "ul":
+            for sub_item in item.contents:
+                if isinstance(sub_item, Tag):
+                    process_item(sub_item, dt)
+        elif item.name == "li":
+            for sub_item in item.contents:
+                if isinstance(sub_item, Tag):
+                    process_item(sub_item, dt)
+        elif item.name == "a":
+            parse_link(item, dt)
         elif item.text != '\n':
-            dt['project_description'] += f"\t - {item.text}\n"
+            dt['project_description'] += f"\t - {item.text}\n\n"
 
     def process_title(title: Tag, dt: dict) -> None:
         """
@@ -30,9 +76,9 @@ def parse_data(info: Tag, dt: dict) -> None:
                 if isinstance(item, Tag):
                     process_item(item, dt)
         elif title.name == "pre":
-            dt['project_description'] += f"```\n{title.text}```\n"
+            dt['project_description'] += f"```\n{title.text}```\n\n"
         elif title.text != '\n':
-            dt['project_description'] += f"{title.text}\n"
+            dt['project_description'] += f"{title.text}\n\n"
 
     for title in info.contents:
         if isinstance(title, Tag):

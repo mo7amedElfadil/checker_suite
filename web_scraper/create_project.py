@@ -6,7 +6,7 @@
 import os
 from requests import Session
 from login import change_curr
-from html_getter import get_html
+from html_getter import get_html, save_html
 from parsers import get_data, get_tasks
 from requests.cookies import RequestsCookieJar
 
@@ -40,20 +40,25 @@ def create_project(data: dict) -> None:
     directory: str = data['directory']
     tasks: list[dict[str, str]] = data['tasks']
     goto: str = ''
+
     if repository in criteria:
-        if type(criteria[repository]) == dict:
-            for key, value in criteria[repository]:
-                if key in project_title:
+        repo_criteria = criteria[repository]
+        if type(repo_criteria) == dict:
+            for key, value in repo_criteria.items():
+                if key.lower() in project_title.lower():
                     goto = f'projects/{value}'
-        goto = f'projects/{criteria[repository]}'
+                    break
+        else:
+            goto = f'projects/{repo_criteria}'
     else:
         return
 
     if not os.path.exists(goto):
-        print(f"Creating directory {goto}")
+        print(f"Creating suite directory {goto}")
         os.mkdir(goto)
     os.chdir(goto)
     if not os.path.exists(directory):
+        print(f"Creating project directory {directory}")
         os.mkdir(directory)
     os.chdir(directory)
     with open('README.md', 'w') as f:
@@ -95,7 +100,6 @@ def create_files(session: Session, domain: str,
         html_content: str = get_html(session,
                                      domain, 'projects', project_id,
                                      cookies=cookies)
-
         data: dict = get_tasks(html_content, get_data(html_content))
         if not data:
             print(f'Trying to change curriculum from {curriculums[curr]}' +
