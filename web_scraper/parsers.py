@@ -4,7 +4,7 @@
     page and get the data and tasks.
 """
 import re
-from bs4 import BeautifulSoup as bs, Tag, NavigableString
+from bs4 import BeautifulSoup as bs, Tag, NavigableString, PageElement
 
 
 def parse_data(info: Tag, dt: dict) -> None:
@@ -12,29 +12,89 @@ def parse_data(info: Tag, dt: dict) -> None:
         This function will parse the data from the project page and
         update the project description in the data dictionary
     """
-    def parse_link(link: Tag, dt: dict) -> None:
-        """
-            Parse the link and update the project description.
-        """
-        if link.name == "a":
-            dt['project_description'] += f"[{link.text}]({link['href']})\n\n"
+    parsers = {
+            "pre": lambda x: f"```{x.text}```\n\n",
+            "code": lambda x: f"```{x.text}```\n\n",
+            "span": lambda x: f"{x.text}\n\n",
+            "p": lambda x: f"{x.text}\n\n",
+            "h1": lambda x: f"# {x.text}\n\n",
+            "h2": lambda x: f"## {x.text}\n\n",
+            "h3": lambda x: f"### {x.text}\n\n",
+            "h4": lambda x: f"#### {x.text}\n\n",
+            "h5": lambda x: f"##### {x.text}\n\n",
+            "h6": lambda x: f"###### {x.text}\n\n",
+            "div": lambda x: f"{x.text}\n\n",
+            "ul": lambda x: f"{x.text}\n\n",
+            "li": lambda x: f"- {x.text}\n\n",
+            "a": lambda x: f"[{x.text}]({x['href']})\n\n",
+            "em": lambda x: f"*{x.text}*\n\n",
+            "strong": lambda x: f"**{x.text}**\n\n",
+            "br": lambda _: "\n",
+            "img": lambda x: f"![{x['alt']}]({x['src']})\n\n",
+            "table": lambda x: f"{x.text}\n\n",
+            "thead": lambda x: f"{x.text}\n\n",
+            "tbody": lambda x: f"{x.text}\n\n",
+            "tr": lambda x: f"{x.text}\n\n",
+            "td": lambda x: f"{x.text}\n\n",
+            "th": lambda x: f"{x.text}\n\n",
+            "iframe": lambda x: f"{x.text}\n\n",
+            "video": lambda x: f"{x.text}\n\n",
+            "audio": lambda x: f"{x.text}\n\n",
+            "source": lambda x: f"{x.text}\n\n",
+            "object": lambda x: f"{x.text}\n\n",
+            "param": lambda x: f"{x.text}\n\n",
+            "embed": lambda x: f"{x.text}\n\n",
+            "track": lambda x: f"{x.text}\n\n",
+            "map": lambda x: f"{x.text}\n\n",
+            "area": lambda x: f"{x.text}\n\n",
+            "canvas": lambda x: f"{x.text}\n\n",
+            "svg": lambda x: f"{x.text}\n\n",
+            "math": lambda x: f"{x.text}\n\n",
+            "form": lambda x: f"{x.text}\n\n",
+        }
 
-    def parse_header(header: Tag, dt: dict) -> None:
+    parents = {
+            "li": lambda x: f"- {x}\n\n",
+            "em": lambda x: f"*{x}*\n\n",
+            "strong": lambda x: f"**{x}**\n\n",
+            "table": lambda x: f"{x}\n\n",
+            "thead": lambda x: f"{x}\n\n",
+            "tbody": lambda x: f"{x}\n\n",
+            "tr": lambda x: f"{x}\n\n",
+            "td": lambda x: f"{x}\n\n",
+            "th": lambda x: f"{x}\n\n",
+            }
+
+    def format_sibling(sibling: PageElement) -> str:
+        res = ''
+        while sibling:
+            if sibling.name in parsers:
+                res += parsers[sibling.name](sibling)
+
+            sibling = sibling.next_sibling
+        return res
+
+    def parse_complex(item: Tag, dt: dict, parent: str) -> None:
         """
-            Parse the header and update the project description.
+            Parse the complex tags such as lists and divs
+            and update the project description.
         """
-        if header.name == "h1":
-            dt['project_description'] += f"# {header.text}\n\n"
-        if header.name == "h2":
-            dt['project_description'] += f"## {header.text}\n\n"
-        if header.name == "h3":
-            dt['project_description'] += f"### {header.text}\n\n"
-        elif header.name == "h4":
-            dt['project_description'] += f"#### {header.text}\n\n"
-        elif header.name == "h5":
-            dt['project_description'] += f"##### {header.text}\n\n"
-        elif header.name == "h6":
-            dt['project_description'] += f"###### {header.text}\n\n"
+        if item.name == "ul":
+            for sub_item in item.contents:
+                if isinstance(sub_item, Tag):
+                    parse_complex(sub_item, dt, item.name)
+        elif item.name == "li":
+            sub_item = item.contents[0]
+            dt['project_description'] += format_sibling(sub_item)
+        elif item.name == "div":
+            for sub_item in item.contents:
+                if isinstance(sub_item, Tag):
+                    parse_complex(sub_item, dt, item.name)
+                else:
+                    dt['project_description'] += parsers[parent](parsers[item.name](sub_item))
+
+        else:
+            dt['project_description'] += parents[parent](parsers[item.name](item))
 
 
     def process_item(item: Tag, dt: dict) -> None:
@@ -43,27 +103,11 @@ def parse_data(info: Tag, dt: dict) -> None:
         """
 
         if item.name == "pre":
-            dt['project_description'] += f"```{item.text}```\n\n"
+            dt['project_description'] += parsers[item.name](item)
         elif item.name in ["h1", "h2", "h3", "h4", "h5", "h6"]:
-            parse_header(item, dt)
-        elif item.name == "div":
-            print(item)
-            for sub_item in item.contents:
-                if isinstance(sub_item, Tag):
-                    process_item(sub_item, dt)
-                else:
-                    dt['project_description'] += f"{sub_item}\n\n"
-
-        elif item.name == "ul":
-            for sub_item in item.contents:
-                if isinstance(sub_item, Tag):
-                    process_item(sub_item, dt)
-        elif item.name == "li":
-            for sub_item in item.contents:
-                if isinstance(sub_item, Tag):
-                    process_item(sub_item, dt)
-        elif item.name == "a":
-            parse_link(item, dt)
+            dt['project_description'] += parsers[item.name](item)
+        elif item.name in ["span", "p", "div", "ul", "li"]:
+            parse_complex(item, dt, item.name)
         elif item.text != '\n':
             dt['project_description'] += f"\t - {item.text}\n\n"
 

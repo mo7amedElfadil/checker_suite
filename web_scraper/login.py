@@ -20,7 +20,8 @@ def change_curr(session: requests.Session, domain: str,
         domain : str
             The domain of the intranet
         curr : int, optional
-            The current curriculum, by default 0 (foundation) or 1 (specialization)
+            The current curriculum,
+            by default 0 (foundation) or 1 (specialization)
         Returns
         -------
         RequestsCookieJar : The cookies
@@ -45,7 +46,8 @@ def login(domain: str, email: str, password: str,
         password : str
             The password of the user
         curr : int, optional
-            The current curriculum, by default 0 (foundation) or 1 (specialization)
+            The current curriculum,
+            by default 0 (foundation) or 1 (specialization)
         Returns
         -------
         tuple[requests.Session, RequestsCookieJar] | None : (session, cookies) | None

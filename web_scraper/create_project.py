@@ -95,7 +95,7 @@ def create_files(session: Session, domain: str,
         Returns:
             int
     """
-    curriculums = ['foundation', 'specialization']
+    curriculums: list[str] = ['foundation', 'specialization']
     try:
         html_content: str = get_html(session,
                                      domain, 'projects', project_id,
